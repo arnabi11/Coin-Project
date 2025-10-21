@@ -67,6 +67,84 @@ for yi, row_name in enumerate(heatmap_y):
 # -----------------------------
 # DEFINE PLOTS
 # -----------------------------
+def plot():
+    """Overview"""
+
+    # ---------------------------------------
+    # 🪙 Description / Intro for the Home Page
+    # ---------------------------------------
+    st.markdown("""
+    ### 🪙 Welcome to the Coin Puzzle Dashboard
+
+    The **Coin Puzzle Project** is a data-driven visualization that explores how different coins perform 
+    across various success and failure scenarios.
+
+    This dashboard helps analyze **coin usage patterns**, **performance trends**, and **success ratios** 
+    over time — enabling better decision-making and insights into behavioral dynamics.
+
+    Each section provides an interactive view of data distributions, comparisons, and outcomes.  
+    Use the **tabs above** to navigate through detailed visualizations.
+    """)
+
+    # ---------------------------------------
+    # 🔺 Create Triangle Layout for Coins (A–J)
+    # ---------------------------------------
+    coins = list("ABCDEFGHIJ")
+
+    # Coordinates forming a triangle arrangement
+    coords = [
+        (0, 0),                  # A - top
+        (-1, -1), (1, -1),       # B, C
+        (-2, -2), (0, -2), (2, -2),   # D, E, F
+        (-3, -3), (-1, -3), (1, -3), (3, -3)  # G, H, I, J
+    ]
+
+    x, y = zip(*coords)
+
+    # ---------------------------------------
+    # 📊 Create Plotly Figure
+    # ---------------------------------------
+    fig = go.Figure()
+
+    # Add coin markers (as gold circles with labels)
+    fig.add_trace(go.Scatter(
+        x=x,
+        y=y,
+        mode="markers+text",
+        text=coins,
+        textfont=dict(size=20, color="#1a1a1a", family="Arial Black"),
+        textposition="middle center",
+        marker=dict(
+            size=80,
+            color="#f9d342",  # rich gold
+            line=dict(color="#1a1a1a", width=2),
+            symbol="circle"
+        ),
+        hoverinfo="text",
+        name="Coins"
+    ))
+
+    # ---------------------------------------
+    # 🎨 Layout Styling
+    # ---------------------------------------
+    fig.update_layout(
+        title="🔺 Coin Puzzle: Triangular Arrangement of Coins A–J",
+        title_x=0.5,
+        xaxis=dict(showgrid=False, zeroline=False, visible=False),
+        yaxis=dict(showgrid=False, zeroline=False, visible=False),
+        template="plotly_dark",
+        plot_bgcolor="rgba(0,0,0,0)",
+        paper_bgcolor="rgba(0,0,0,0)",
+        height=600,
+        margin=dict(t=80, l=10, r=10, b=20),
+        showlegend=False
+    )
+
+    # ---------------------------------------
+    # ✅ Return the Figure
+    # ---------------------------------------
+    return fig
+
 def plot1():
     """Coin usage by movement order"""
     fig = go.Figure()
@@ -252,7 +330,8 @@ st.title("🪙 Coin Usage / Success-Failure Dashboard")
 # -----------------------------
 # TAB LAYOUT FOR PLOTS
 # -----------------------------
-tab1, tab2, tab3, tab4 = st.tabs([
+tab1, tab2, tab3, tab4, tab5 = st.tabs([
+    "🪙 Home",
     "📊 Plot 1", 
     "📈 Plot 2", 
     "📉 Plot 3", 
@@ -263,27 +342,34 @@ tab1, tab2, tab3, tab4 = st.tabs([
 # TAB 1 - Plot 1
 # -----------------------------
 with tab1:
-    st.subheader("Plot 1: Overview")
+    st.subheader("Overview")
+    st.plotly_chart(plot(), use_container_width=True)
+
+# -----------------------------
+# TAB 1 - Plot 1
+# -----------------------------
+with tab2:
+    st.subheader("Plot 1: Coin Usage")
     st.plotly_chart(plot1(), use_container_width=True)
 
 # -----------------------------
 # TAB 2 - Plot 2
 # -----------------------------
-with tab2:
+with tab3:
     st.subheader("Plot 2: Detailed Distribution")
     st.plotly_chart(plot2(), use_container_width=True)
 
 # -----------------------------
 # TAB 3 - Plot 3
 # -----------------------------
-with tab3:
+with tab4:
     st.subheader("Plot 3: Comparative Analysis")
     st.plotly_chart(plot3(), use_container_width=True)
 
 # -----------------------------
 # TAB 4 - Coin-wise Analysis
 # -----------------------------
-with tab4:
+with tab5:
     st.subheader("Plot 4: Success vs Failure by Coin ID")
     selected_coin = st.selectbox("Select Coin ID:", options=coins, index=0)
     st.plotly_chart(plot4(selected_coin), use_container_width=True)
