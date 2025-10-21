@@ -175,18 +175,19 @@ st.markdown("""
         /* General background and font */
         body, [class*="stApp"] {
             background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-            color: #f0f0f0;
+            color: #FFFFF0;
             font-family: 'Poppins', sans-serif;
         }
 
         /* Title styling */
         h1 {
-            color: #f9d342 !important;
+            color: #FFFFF0 !important;
             text-align: center;
             padding: 0.5rem 0;
         }
 
         /* Tabs styling */
+        
         div[data-baseweb="tab-list"] {
             display: flex;
             justify-content: center;
@@ -198,20 +199,20 @@ st.markdown("""
         }
 
         div[data-baseweb="tab"] {
-            color: #f0f0f0;
+            color: #FFFFF0;
             font-size: 1.05rem;
             font-weight: 500;
             transition: all 0.3s ease;
         }
 
         div[data-baseweb="tab"]:hover {
-            color: #f9d342;
+            color: #FFFFF0;
             transform: scale(1.05);
         }
 
         div[data-baseweb="tab"][aria-selected="true"] {
             background-color: #f9d342;
-            color: #1a1a1a;
+            color: #FFFFF0;
             border-radius: 10px;
             font-weight: 600;
             box-shadow: 0 0 10px rgba(249, 211, 66, 0.5);
