@@ -246,61 +246,61 @@ st.set_page_config(
 )
 
 # -----------------------------
-# CUSTOM CSS STYLING
+# CUSTOM CSS STYLING (PASTEL THEME)
 # -----------------------------
 st.markdown("""
     <style>
         /* General background and font */
         body, [class*="stApp"] {
-            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-            color: #FFFFF0;
+            background: linear-gradient(135deg, #f8f9fa, #e8eaf6, #fce4ec);
+            color: #4b4b4b;
             font-family: 'Poppins', sans-serif;
         }
 
         /* Title styling */
         h1 {
-            color: #FFFFF0 !important;
+            color: #6b5b95 !important;
             text-align: center;
             padding: 0.5rem 0;
         }
 
         /* Tabs styling */
-        
         div[data-baseweb="tab-list"] {
             display: flex;
             justify-content: center;
             gap: 1.5rem;
-            background-color: rgba(255, 255, 255, 0.05);
-            border-radius: 10px;
+            background-color: rgba(255, 255, 255, 0.7);
+            border-radius: 12px;
             padding: 0.6rem;
             margin-bottom: 1.5rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
         }
 
         div[data-baseweb="tab"] {
-            color: #FFFFF0;
+            color: #6b5b95;
             font-size: 1.05rem;
             font-weight: 500;
             transition: all 0.3s ease;
         }
 
         div[data-baseweb="tab"]:hover {
-            color: #FFFFF0;
+            color: #f06292;
             transform: scale(1.05);
         }
 
         div[data-baseweb="tab"][aria-selected="true"] {
-            background-color: #f9d342;
-            color: #FFFFF0;
+            background-color: #b2ebf2;
+            color: #37474f;
             border-radius: 10px;
             font-weight: 600;
-            box-shadow: 0 0 10px rgba(249, 211, 66, 0.5);
+            box-shadow: 0 0 10px rgba(178, 235, 242, 0.6);
         }
 
         /* Plot area */
         .stPlotlyChart {
             border-radius: 15px;
-            box-shadow: 0 0 20px rgba(255, 255, 255, 0.15);
-            background-color: rgba(255, 255, 255, 0.05);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+            background-color: rgba(255, 255, 255, 0.8);
             padding: 15px;
         }
     </style>
@@ -325,7 +325,7 @@ st.markdown("""
 # -----------------------------
 # DASHBOARD TITLE
 # -----------------------------
-st.title("🪙 Coin Usage / Success-Failure Dashboard")
+st.title("🪙 Copernicus Dashboard")
 
 # -----------------------------
 # TAB LAYOUT FOR PLOTS
