@@ -314,6 +314,58 @@ with tab_users:
 # ---------- Transitions ----------
 with tab_transitions:
     st.subheader("Success vs Unsuccess Rates by CoinID_Transition")
+    ######
+   # Collect unique coins from both ends
+    coins = sorted(set(grouped["from"].dropna().unique()).union(set(grouped["to"].dropna().unique())))
+    
+    if len(coins) == 0:
+        st.info("No Coin IDs available for filtering.")
+    else:
+        sel_coin = st.selectbox("Coin ID", coins, index=0, help="Show transitions that involve this coin")
+        scope = st.radio("Match scope", ["Either side", "From only", "To only"], horizontal=True)
+        
+        if scope == "From only":
+            filt = grouped["from"] == sel_coin
+        elif scope == "To only":
+            filt = grouped["to"] == sel_coin
+        else:
+            filt = (grouped["from"] == sel_coin) | (grouped["to"] == sel_coin)
+        
+        filtered = grouped.loc[filt].copy()
+        
+        if filtered.empty:
+            st.warning("No transitions match the current selection.")
+        else:
+            # Sort and plot filtered rates
+            filtered_sorted = filtered.sort_values(by="Success_Rate", ascending=False)
+            x = np.arange(len(filtered_sorted))
+            width = 0.4
+            
+            fig, ax = plt.subplots(figsize=(14, 5))
+            ax.bar(
+                x - width/2,
+                filtered_sorted["Success_Rate"].fillna(0),
+                width,
+                label="Success Rate",
+                color="mediumblue",
+            )
+            ax.bar(
+                x + width/2,
+                filtered_sorted["Unsuccess_Rate"].fillna(0),
+                width,
+                label="Unsuccess Rate",
+                color="lightgreen",
+                alpha=0.8,
+            )
+            ax.set_xticks(x)
+            ax.set_xticklabels(filtered_sorted["CoinID_Transition"], rotation=90)
+            ax.set_title(f"Success and Unsuccess Rates by CoinID_Transition (filtered by {sel_coin})")
+            ax.set_xlabel("CoinID_Transition")
+            ax.set_ylabel("Rate")
+            ax.legend()
+            fig.tight_layout()
+            st.pyplot(fig)
+            #####################
     grouped_sorted = grouped.sort_values(by="Success_Rate", ascending=False)
     gap = 1.5
     x = np.arange(len(grouped_sorted)) * gap
@@ -346,7 +398,7 @@ with tab_transitions:
 
 # ---------- Heatmaps ----------
 with tab_heatmaps:
-    st.subheader("Avg Successful TimeGap_sec (from → to)")
+    st.subheader("Avg Successful TimeGap_sec ")
     success_matrix = grouped.pivot(index="from", columns="to", values="Avg_TimeGap_Success")
     if success_matrix is None or success_matrix.empty or success_matrix.count().sum() == 0:
         st.info("No data available to render the Successful TimeGap heatmap.")
@@ -355,10 +407,10 @@ with tab_heatmaps:
         sns.heatmap(success_matrix.fillna(0), annot=True, fmt=".2f", cmap="Greens",
                     cbar_kws={"label": "Avg Successful TimeGap_sec"}, ax=ax)
         ax.set_xlabel("To CoinID"); ax.set_ylabel("From CoinID")
-        ax.set_title("Average Successful TimeGap_sec (from-to)")
+        ax.set_title("Average Successful TimeGap_sec")
         st.pyplot(fig)
 
-    st.subheader("Avg Unsuccessful TimeGap_sec (from → to)")
+    st.subheader("Avg Unsuccessful TimeGap_sec ")
     unsuccess_matrix = grouped.pivot(index="from", columns="to", values="Avg_TimeGap_Unsuccess")
     if unsuccess_matrix is None or unsuccess_matrix.empty or unsuccess_matrix.count().sum() == 0:
         st.info("No data available to render the Unsuccessful TimeGap heatmap.")
@@ -367,7 +419,7 @@ with tab_heatmaps:
         sns.heatmap(unsuccess_matrix.fillna(0), annot=True, fmt=".2f", cmap="Reds",
                     cbar_kws={"label": "Avg Unsuccessful TimeGap_sec"}, ax=ax)
         ax.set_xlabel("To CoinID"); ax.set_ylabel("From CoinID")
-        ax.set_title("Average Unsuccessful TimeGap_sec (from-to)")
+        ax.set_title("Average Unsuccessful TimeGap_sec ")
         st.pyplot(fig)
 
 # ---------- PathIDs ----------
@@ -403,12 +455,12 @@ with tab_pathids:
             else:
                 fig, ax = plt.subplots(figsize=(12, 4))
                 ps_agg.loc[sel_paths, "Count"].plot(kind="bar", color="tab:blue", ax=ax)
-                ax.set_title("Top 10 CoinID Sequence by Count"); ax.set_ylabel("Count"); ax.set_xlabel("PathID")
+                ax.set_title("Top 10 CoinID Sequence by Count"); ax.set_ylabel("Count"); ax.set_xlabel("PathSequence")
                 plt.setp(ax.get_xticklabels(), rotation=45); st.pyplot(fig)
 
                 fig, ax = plt.subplots(figsize=(12, 4))
                 ps_agg.loc[sel_paths, "Avg_TimeGap_sec"].plot(kind="bar", color="tab:orange", ax=ax)
-                ax.set_title("Average TimeGap_sec for Top 10 CoinID Sequence"); ax.set_ylabel("Avg_TimeGap_sec"); ax.set_xlabel("PathID")
+                ax.set_title("Average TimeGap_sec for Top 10 CoinID Sequence"); ax.set_ylabel("Avg_TimeGap_sec"); ax.set_xlabel("PathSequence")
                 plt.setp(ax.get_xticklabels(), rotation=45); st.pyplot(fig)
 
                 sel_low = ps_agg["Avg_TimeGap_sec"].nsmallest(10).sort_values(ascending=True)
@@ -416,7 +468,7 @@ with tab_pathids:
                     fig, ax = plt.subplots(figsize=(12, 4))
                     sel_low.plot(kind="bar", color="tab:orange", ax=ax)
                     ax.set_title("Average TimeGap_sec for Lowest 10 CoinID sequence")
-                    ax.set_ylabel("Avg_TimeGap_sec"); ax.set_xlabel("PathID")
+                    ax.set_ylabel("Avg_TimeGap_sec"); ax.set_xlabel("PathSequence")
                     plt.setp(ax.get_xticklabels(), rotation=45); st.pyplot(fig)
                 else:
                     st.info("No PathIDs with the lowest average time gaps to display.")
