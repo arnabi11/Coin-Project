@@ -41,7 +41,42 @@ if missing:
 df["Coin ID"] = df["Coin ID"].astype(str)
 coins = df["Coin ID"].tolist()
 
+@st.cache_data(show_spinner=False)
+def load_movement_excel():
+    excel_path = "C:/Users/tanma/OneDrive/Documents/GitHub/Coin-Project/ExcelFile2 (1) (1).xlsx"
+    if not os.path.exists(excel_path):
+        return pd.DataFrame(), {}
 
+    df_moves = pd.read_excel(excel_path, usecols=["ID", "Moves_CoinID"])
+    df_moves["ID"] = df_moves["ID"].astype(str)
+
+    # --- Clean and explode moves list ---
+    def clean_moves(x):
+        if pd.isna(x):
+            return []
+        try:
+            # Convert string like "['A', 'B', 'C']" to list
+            items = [item.strip().strip("'").strip('"') for item in x.strip("[]").split(",")]
+            # Remove empty / nan-like items
+            return [i for i in items if i and i.lower() != "nan"]
+        except Exception:
+            return []
+
+    df_moves["Moves_CoinID"] = df_moves["Moves_CoinID"].apply(clean_moves)
+    df_moves = df_moves.explode("Moves_CoinID").reset_index(drop=True)
+
+    # Keep only valid Coin IDs from master list
+    df_moves = df_moves[df_moves["Moves_CoinID"].isin(df["Coin ID"])]
+
+    # Reset movement order per user
+    df_moves["MoveOrder"] = df_moves.groupby("ID").cumcount() + 1
+
+    # Map Coin IDs to numeric order for plotting
+    unique_coin_ids = sorted(df_moves["Moves_CoinID"].dropna().unique().tolist())
+    coin_id_map = {coin: idx + 1 for idx, coin in enumerate(unique_coin_ids)}
+    df_moves["CoinNumeric"] = df_moves["Moves_CoinID"].map(coin_id_map)
+
+    return df_moves, coin_id_map
 
 # -----------------------------
 # SHARED TRACE DATA
@@ -63,6 +98,14 @@ for yi, row_name in enumerate(heatmap_y):
             x=col_name, y=row_name, text=str(int(val)),
             showarrow=False, font=dict(color=text_color, size=11)
         ))
+
+# -----------------------------
+# LOAD CACHED DATA
+# -----------------------------
+# df, move_cols = load_main_csv()
+df_moves, coin_id_map = load_movement_excel() if isinstance(load_movement_excel(), tuple) else (pd.DataFrame(), {})
+
+coins = df["Coin ID"].tolist()
 
 # -----------------------------
 # DEFINE PLOTS
@@ -235,6 +278,44 @@ def plot4(coin_id):
     )
     return fig
 
+def plot5(user_id):
+    user_df = df_moves[df_moves["ID"] == user_id]
+    if user_df.empty:
+        st.warning(f"No movement data for user {user_id}")
+        return go.Figure()
+
+    # Drop any NaN or unmapped points
+    user_df = user_df.dropna(subset=["CoinNumeric", "Moves_CoinID"])
+
+    fig = go.Figure(go.Scatter(
+        x=user_df["MoveOrder"],
+        y=user_df["CoinNumeric"],
+        mode="lines+markers+text",
+        text=user_df["Moves_CoinID"],
+        textposition="top center",
+        line=dict(color="#9575cd", width=3),
+        marker=dict(size=10, color="#ba68c8", line=dict(color="#512da8", width=1)),
+        hovertemplate="Move %{x}: Coin %{text}<extra></extra>",
+    ))
+
+    fig.update_yaxes(
+        tickmode="array",
+        tickvals=list(coin_id_map.values()),
+        ticktext=list(coin_id_map.keys()),
+        title_text="Coin ID",
+        range=[0.5, len(coin_id_map) + 0.5]
+    )
+    fig.update_xaxes(
+        title_text="Movement Order",
+        dtick=1
+    )
+    fig.update_layout(
+        title=f"Plot 5: Movement Pattern for User {user_id}",
+        height=600,
+        margin=dict(l=60, r=40, t=80, b=40)
+    )
+    return fig
+
 
 # -----------------------------
 # PAGE CONFIGURATION
@@ -330,12 +411,13 @@ st.title("🪙 Copernicus Dashboard")
 # -----------------------------
 # TAB LAYOUT FOR PLOTS
 # -----------------------------
-tab1, tab2, tab3, tab4, tab5 = st.tabs([
+tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
     "🪙 Home",
     "📊 Plot 1", 
     "📈 Plot 2", 
     "📉 Plot 3", 
-    "🎯 Coin-wise Success/Failure"
+    "🎯 Coin-wise Success/Failure",
+    "🚶‍♂️ User Movement"
 ])
 
 # -----------------------------
@@ -373,3 +455,14 @@ with tab5:
     st.subheader("Plot 4: Success vs Failure by Coin ID")
     selected_coin = st.selectbox("Select Coin ID:", options=coins, index=0)
     st.plotly_chart(plot4(selected_coin), use_container_width=True)
+
+# -----------------------------
+# TAB 6 - User Movement
+# -----------------------------
+with tab6:
+    if df_moves.empty:
+        st.info("No user movement data found.")
+    else:
+        user = st.selectbox("Select User ID:", sorted(df_moves['ID'].unique()))
+        if st.button("Show Movement Pattern"):
+            st.plotly_chart(plot5(user), use_container_width=True)
